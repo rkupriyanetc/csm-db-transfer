@@ -23,15 +23,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import mk.ck.energy.csm.model.Configuration;
-import mk.ck.energy.csm.model.Database;
-import mk.ck.energy.csm.model.Employee;
-import mk.ck.energy.csm.model.auth.User;
-import mk.ck.energy.csm.model.auth.UserRole;
-import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider;
-import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider.MyLogin;
-import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider.MySignup;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -50,6 +41,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.feth.play.module.pa.controllers.AuthenticateBase;
+import com.feth.play.module.pa.providers.password.UsernamePasswordAuthProvider;
+
+import be.objectify.deadbolt.java.actions.Group;
+import be.objectify.deadbolt.java.actions.Restrict;
+import be.objectify.deadbolt.java.actions.SubjectPresent;
+import mk.ck.energy.csm.model.Configuration;
+import mk.ck.energy.csm.model.Database;
+import mk.ck.energy.csm.model.Employee;
+import mk.ck.energy.csm.model.auth.User;
+import mk.ck.energy.csm.model.auth.UserRole;
+import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider;
+import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider.MyLogin;
+import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider.MySignup;
 import play.Routes;
 import play.data.Form;
 import play.i18n.Messages;
@@ -66,20 +71,15 @@ import views.html.profile;
 import views.html.rates;
 import views.html.restricted;
 import views.html.signup;
-import be.objectify.deadbolt.java.actions.Group;
-import be.objectify.deadbolt.java.actions.Restrict;
-import be.objectify.deadbolt.java.actions.SubjectPresent;
-
-import com.feth.play.module.pa.providers.password.UsernamePasswordAuthProvider;
 
 public class Application extends Controller {
 	
 	private static final Logger	LOGGER						= LoggerFactory.getLogger( Application.class );
-	
+																								
 	public static final String	FLASH_MESSAGE_KEY	= "message";
-	
+																								
 	public static final String	FLASH_ERROR_KEY		= "error";
-	
+																								
 	public static Result index() {
 		return ok( index.render() );
 	}
@@ -98,7 +98,7 @@ public class Application extends Controller {
 	
 	public static Result phoneBook() {
 		final List< Employee > employees = importEmployees();
-		final List< Employee > tmpDelete = new ArrayList<>( employees.size() );
+		final List< Employee > tmpDelete = new ArrayList< >( employees.size() );
 		for ( final Employee emp : employees )
 			if ( !emp.isToPhoneBook() )
 				tmpDelete.add( emp );
@@ -110,12 +110,12 @@ public class Application extends Controller {
 		return ok( rates.render() );
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result listAboutStaft() {
 		return ok( aboutStaft.render() );
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result doListAboutStaft() {
 		final List< Employee > employees = importEmployees();
 		return exportEmployeesToExcel( employees );
@@ -138,7 +138,7 @@ public class Application extends Controller {
 	}
 	
 	public static Result doLogin() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< MyLogin > filledForm = MyUsernamePasswordAuthProvider.LOGIN_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not fill everything properly
@@ -156,11 +156,11 @@ public class Application extends Controller {
 		return ok( Routes.javascriptRouter( "jsRoutes", //
 				routes.javascript.Signup.forgotPassword(), //
 				routes.javascript.Account.onChangeAddressTopSelect() //
-				) ).as( "text/javascript" );
+		) ).as( "text/javascript" );
 	}
 	
 	public static Result doSignup() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< MySignup > filledForm = MyUsernamePasswordAuthProvider.SIGNUP_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not fill everything properly
@@ -177,7 +177,7 @@ public class Application extends Controller {
 	}
 	
 	public static List< Employee > importEmployees() {
-		final List< Employee > employees = new LinkedList<>();
+		final List< Employee > employees = new LinkedList< >();
 		final File xmlEmployee = Database.getConfiguration().getEmployeesFileXML();
 		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware( true );
@@ -225,8 +225,8 @@ public class Application extends Controller {
 									employee.setEmploymentDay( value );
 									break;
 								case "to_phone_book" :
-									employee.setToPhoneBook( value.equals( "1" ) || value.equalsIgnoreCase( "true" )
-											|| value.equalsIgnoreCase( "yes" ) ? true : false );
+									employee.setToPhoneBook(
+											value.equals( "1" ) || value.equalsIgnoreCase( "true" ) || value.equalsIgnoreCase( "yes" ) ? true : false );
 									break;
 							}
 						}

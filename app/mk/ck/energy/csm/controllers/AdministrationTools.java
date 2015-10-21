@@ -34,6 +34,23 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.SAXException;
+
+import com.feth.play.module.pa.controllers.AuthenticateBase;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
+
+import be.objectify.deadbolt.java.actions.Group;
+import be.objectify.deadbolt.java.actions.Restrict;
 import mk.ck.energy.csm.model.Address;
 import mk.ck.energy.csm.model.AddressLocation;
 import mk.ck.energy.csm.model.AddressNotFoundException;
@@ -63,18 +80,6 @@ import mk.ck.energy.csm.model.auth.User;
 import mk.ck.energy.csm.model.auth.UserNotFoundException;
 import mk.ck.energy.csm.model.auth.UserRole;
 import mk.ck.energy.csm.providers.MyFirstLastNameUserPasswordAuthUser;
-
-import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.xml.sax.SAXException;
-
 import play.data.Form;
 import play.i18n.Messages;
 import play.mvc.Controller;
@@ -82,34 +87,29 @@ import play.mvc.Result;
 import views.html.admin.index;
 import views.html.admin.userAdd;
 import views.html.admin.viewXML;
-import be.objectify.deadbolt.java.actions.Group;
-import be.objectify.deadbolt.java.actions.Restrict;
-
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
 
 public class AdministrationTools extends Controller {
 	
 	private static final Logger					LOGGER										= LoggerFactory.getLogger( User.class );
-	
+																																
 	private static final Configuration	CONFIGURATION							= Database.getConfiguration();
-	
+																																
 	private static final String					CONSUMER_CODE_STATUS_NAME	= "consumer.code.status.type";
-	
+																																
 	private static final String					METER_CODE_PLACE_NAME			= "place.meter.install.type";
-	
+																																
 	private static final String					METERDEVICES_RESULT				= "MeterDevices_Result.txt";
-	
+																																
 	private static final String					CONSUMERS_RESULT					= "Consumers_Result.txt";
-	
+																																
 	private static final String					METERS_RESULT							= "Meters_Result.txt";
-	
+																																
 	public static class XMLText {
 		
 		private String	textXML;
-		
+										
 		private int			fileNumber;
-		
+										
 		public XMLText() {}
 		
 		public String getTextXML() {
@@ -132,25 +132,25 @@ public class AdministrationTools extends Controller {
 	public static class StepByStep {
 		
 		private boolean					addressTopXML;
-		
+														
 		private boolean					addressLocationXML;
-		
+														
 		private boolean					dBTableLocations;
-		
+														
 		private boolean					locationXML;
-		
+														
 		private boolean					dBTableStreets;
-		
+														
 		private boolean					addressStreetsXML;
-		
+														
 		private boolean					fillingMeterDevices;
-		
+														
 		private boolean					updateConsumers;
-		
+														
 		private boolean					updateMeters;
-		
+														
 		private List< String >	references;
-		
+														
 		public static StepByStep newInstance() {
 			return new StepByStep();
 		}
@@ -239,31 +239,31 @@ public class AdministrationTools extends Controller {
 	}
 	
 	public static final Form< MyUser >			USER_FORM					= form( MyUser.class );
-	
+																														
 	public static final Form< XMLText >			XML_TEXT_FORM			= form( XMLText.class );
-	
+																														
 	public static final Form< StepByStep >	STEP_BY_STEP_FORM	= form( StepByStep.class );
-	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+																														
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result index( final int indexTab ) {
 		return index( STEP_BY_STEP_FORM.fill( new StepByStep() ), indexTab );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result index( final Form< ? > form, final int indexTab ) {
 		return ok( index.render( CONFIGURATION, findAllUsersByAdminAndOperRoles(), form, indexTab ) );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result addUser( final String role ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final MyUser u = new MyUser( role );
 		return ok( userAdd.render( USER_FORM.fill( u ) ) );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result doAddUser() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< MyUser > filledForm = USER_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not select whether to link or not link
@@ -287,9 +287,9 @@ public class AdministrationTools extends Controller {
 		}
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result doChangeActiveDB() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Map< String, String[] > mapa = request().body().asFormUrlEncoded();
 		final String s = mapa.keySet().iterator().next();
 		CONFIGURATION.setActiveMongoDBName( mapa.get( s )[ 0 ] );
@@ -297,7 +297,7 @@ public class AdministrationTools extends Controller {
 		return index( 1 );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result removeUser( final String userId ) {
 		final User localUser = User.getLocalUser( session() );
 		if ( !localUser.getId().equals( userId ) )
@@ -315,9 +315,9 @@ public class AdministrationTools extends Controller {
 		return index( 0 );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result viewXML( final int fileN ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final XMLText text = new XMLText();
 		File f = null;
 		switch ( fileN ) {
@@ -365,9 +365,9 @@ public class AdministrationTools extends Controller {
 		return ok( viewXML.render( XML_TEXT_FORM.fill( text ) ) );
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result doViewXML() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< XMLText > filledForm = XML_TEXT_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not select whether to link or not link
@@ -409,7 +409,7 @@ public class AdministrationTools extends Controller {
 		}
 	}
 	
-	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.ADMIN_ROLE_NAME ))
 	public static Result doSteppingSynchronizationDB() {
 		final Form< StepByStep > filledForm = STEP_BY_STEP_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
@@ -531,7 +531,7 @@ public class AdministrationTools extends Controller {
 									}
 								}
 							}
-							final List< AddressTop > addr = new LinkedList<>();
+							final List< AddressTop > addr = new LinkedList< >();
 							switch ( ref ) {
 								case "references" :
 									try {
@@ -552,7 +552,7 @@ public class AdministrationTools extends Controller {
 							}
 							final LocationType lt = LocationType.abbreviationToLocationType( nameType );
 							if ( !lt.equals( LocationType.UNSPECIFIED ) ) {
-								Set< AdministrativeCenterType > at = new LinkedHashSet<>();
+								Set< AdministrativeCenterType > at = new LinkedHashSet< >();
 								final StringTokenizer st = new StringTokenizer( admType, "," );
 								while ( st.hasMoreTokens() ) {
 									final String token = st.nextToken().trim();
@@ -701,7 +701,7 @@ public class AdministrationTools extends Controller {
 									}
 								}
 							}
-							final List< AddressTop > addr = new LinkedList<>();
+							final List< AddressTop > addr = new LinkedList< >();
 							switch ( ref ) {
 								case "references" :
 									try {
@@ -722,7 +722,7 @@ public class AdministrationTools extends Controller {
 							}
 							final LocationType lt = LocationType.abbreviationToLocationType( nameType );
 							if ( !lt.equals( LocationType.UNSPECIFIED ) ) {
-								Set< AdministrativeCenterType > at = new LinkedHashSet<>();
+								Set< AdministrativeCenterType > at = new LinkedHashSet< >();
 								final StringTokenizer st = new StringTokenizer( admType, "," );
 								while ( st.hasMoreTokens() ) {
 									final String token = st.nextToken().trim();
@@ -922,9 +922,9 @@ public class AdministrationTools extends Controller {
 						final double meterPrecision = result.getDouble( 6 );
 						// Meter interval
 						final byte meterInterval = result.getByte( 7 );
-						final MeterDevice meterDevice = MeterDevice.create( meterName, phasing,
-								MeterDevice.MethodType.values()[ methodType ], MeterDevice.InductiveType.values()[ inductiveType ],
-								MeterDevice.RegisterType.values()[ registerType ], meterPrecision, meterInterval );
+						final MeterDevice meterDevice = MeterDevice.create( meterName, phasing, MeterDevice.MethodType.values()[ methodType ],
+								MeterDevice.InductiveType.values()[ inductiveType ], MeterDevice.RegisterType.values()[ registerType ],
+								meterPrecision, meterInterval );
 						try {
 							final MeterDevice md = MeterDevice.findByName( meterName );
 							if ( md == null ) {
@@ -1002,9 +1002,9 @@ public class AdministrationTools extends Controller {
 								pCount++ ;
 						LOGGER.trace( "Count results is {} in select consumers", pCount );
 						final ResultSet result = statement.getResultSet();
-						final List< UndefinedConsumer > undefinedConsumers = new LinkedList<>();
-						final List< Consumer > updateBeforeConsumers = new LinkedList<>();
-						final List< Consumer > updateAfterConsumers = new LinkedList<>();
+						final List< UndefinedConsumer > undefinedConsumers = new LinkedList< >();
+						final List< Consumer > updateBeforeConsumers = new LinkedList< >();
+						final List< Consumer > updateAfterConsumers = new LinkedList< >();
 						boolean undefinedConsomerTry = false;
 						while ( result.next() ) {
 							UndefinedConsumer ndefinedConsomer = null;
@@ -1356,8 +1356,8 @@ public class AdministrationTools extends Controller {
 											if ( meterConsumer.getDateTesting() != meter.getDateTesting() )
 												cUpdates.add( Meter.makeFilterToDateTesting( meter.getDateTesting() ) );
 											if ( meterConsumer.getNumber() != null && meter.getNumber() != null
-													&& !meterConsumer.getNumber().equals( meter.getNumber() ) || meterConsumer.getNumber() == null
-													&& meter.getNumber() != null )
+													&& !meterConsumer.getNumber().equals( meter.getNumber() )
+													|| meterConsumer.getNumber() == null && meter.getNumber() != null )
 												cUpdates.add( Meter.makeFilterToNumber( meter.getNumber() ) );
 											if ( meterConsumer.getMightOutturn() != meter.getMightOutturn() )
 												cUpdates.add( Meter.makeFilterToMightOutturn( meter.getMightOutturn() ) );

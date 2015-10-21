@@ -1,6 +1,13 @@
 package mk.ck.energy.csm.controllers;
 
 import static play.data.Form.form;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.feth.play.module.pa.PlayAuthenticate;
+import com.feth.play.module.pa.controllers.AuthenticateBase;
+
 import mk.ck.energy.csm.model.auth.InvalidTokenException;
 import mk.ck.energy.csm.model.auth.TokenAction;
 import mk.ck.energy.csm.model.auth.TokenType;
@@ -10,10 +17,6 @@ import mk.ck.energy.csm.providers.MyLoginUsernamePasswordAuthUser;
 import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider;
 import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider.MyIdentity;
 import mk.ck.energy.csm.providers.MyUsernamePasswordAuthUser;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import play.data.Form;
 import play.i18n.Messages;
 import play.mvc.Controller;
@@ -25,11 +28,9 @@ import views.html.account.signup.password_forgot;
 import views.html.account.signup.password_reset;
 import views.html.account.signup.unverified;
 
-import com.feth.play.module.pa.PlayAuthenticate;
-
 public class Signup extends Controller {
 	
-	private static final Logger	LOGGER	= LoggerFactory.getLogger( Signup.class );
+	private static final Logger LOGGER = LoggerFactory.getLogger( Signup.class );
 	
 	public static class PasswordReset extends Account.PasswordChange {
 		
@@ -39,7 +40,7 @@ public class Signup extends Controller {
 			this.token = token;
 		}
 		
-		private String	token;
+		private String token;
 		
 		public String getToken() {
 			return token;
@@ -50,17 +51,17 @@ public class Signup extends Controller {
 		}
 	}
 	
-	private static final Form< PasswordReset >	PASSWORD_RESET_FORM	= form( PasswordReset.class );
+	private static final Form< PasswordReset > PASSWORD_RESET_FORM = form( PasswordReset.class );
 	
 	public static Result unverified() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		return ok( unverified.render() );
 	}
 	
-	private static final Form< MyIdentity >	FORGOT_PASSWORD_FORM	= form( MyIdentity.class );
+	private static final Form< MyIdentity > FORGOT_PASSWORD_FORM = form( MyIdentity.class );
 	
 	public static Result forgotPassword( final String email ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		Form< MyIdentity > form = FORGOT_PASSWORD_FORM;
 		if ( email != null && !email.trim().isEmpty() )
 			form = FORGOT_PASSWORD_FORM.fill( new MyIdentity( email ) );
@@ -68,7 +69,7 @@ public class Signup extends Controller {
 	}
 	
 	public static Result doForgotPassword() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< MyIdentity > filledForm = FORGOT_PASSWORD_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not fill in his/her email
@@ -131,7 +132,7 @@ public class Signup extends Controller {
 	}
 	
 	public static Result resetPassword( final String token ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		try {
 			tokenIsValid( token, TokenType.PASSWORD_RESET );
 			return ok( password_reset.render( PASSWORD_RESET_FORM.fill( new PasswordReset( token ) ) ) );
@@ -143,7 +144,7 @@ public class Signup extends Controller {
 	}
 	
 	public static Result doResetPassword() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< PasswordReset > filledForm = PASSWORD_RESET_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			return badRequest( password_reset.render( filledForm ) );
@@ -180,17 +181,17 @@ public class Signup extends Controller {
 	}
 	
 	public static Result oAuthDenied( final String getProviderKey ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		return ok( oAuthDenied.render( getProviderKey ) );
 	}
 	
 	public static Result exists() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		return ok( exists.render() );
 	}
 	
 	public static Result verify( final String token ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		try {
 			final TokenAction ta = tokenIsValid( token, TokenType.EMAIL_VERIFICATION );
 			final User user = User.findById( ta.getUserId() );

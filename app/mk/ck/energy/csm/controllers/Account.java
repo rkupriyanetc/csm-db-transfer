@@ -6,6 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.feth.play.module.pa.PlayAuthenticate;
+import com.feth.play.module.pa.controllers.AuthenticateBase;
+import com.feth.play.module.pa.user.AuthUser;
+
+import be.objectify.deadbolt.java.actions.Group;
+import be.objectify.deadbolt.java.actions.Restrict;
+import be.objectify.deadbolt.java.actions.SubjectPresent;
 import mk.ck.energy.csm.model.AddressLocation;
 import mk.ck.energy.csm.model.Consumer;
 import mk.ck.energy.csm.model.ConsumerException;
@@ -14,10 +24,6 @@ import mk.ck.energy.csm.model.auth.UserNotFoundException;
 import mk.ck.energy.csm.model.auth.UserRole;
 import mk.ck.energy.csm.providers.MyUsernamePasswordAuthProvider;
 import mk.ck.energy.csm.providers.MyUsernamePasswordAuthUser;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import play.data.Form;
 import play.data.format.Formats.NonEmpty;
 import play.data.validation.Constraints.MinLength;
@@ -31,22 +37,16 @@ import views.html.account.joinConsumer;
 import views.html.account.link;
 import views.html.account.password_change;
 import views.html.account.unverified;
-import be.objectify.deadbolt.java.actions.Group;
-import be.objectify.deadbolt.java.actions.Restrict;
-import be.objectify.deadbolt.java.actions.SubjectPresent;
-
-import com.feth.play.module.pa.PlayAuthenticate;
-import com.feth.play.module.pa.user.AuthUser;
 
 public class Account extends Controller {
 	
-	private static final Logger	LOGGER	= LoggerFactory.getLogger( Account.class );
+	private static final Logger LOGGER = LoggerFactory.getLogger( Account.class );
 	
 	public static class Accept {
 		
 		@Required
 		@NonEmpty
-		private Boolean	accept;
+		private Boolean accept;
 		
 		public Boolean getAccept() {
 			return accept;
@@ -62,11 +62,11 @@ public class Account extends Controller {
 		@MinLength( 3 )
 		@Required
 		private String	password;
-		
+										
 		@MinLength( 3 )
 		@Required
 		private String	repeatPassword;
-		
+										
 		public String getPassword() {
 			return password;
 		}
@@ -94,26 +94,26 @@ public class Account extends Controller {
 		
 		@Required
 		private String					userId;
-		
+														
 		@Required
 		private String					id;
-		
+														
 		@Required
 		private String					fullName;
-		
+														
 		@Required
 		private List< String >	topAddress;
-		
+														
 		@Required
 		private List< String >	locationAddress;
-		
+														
 		@Required
 		private List< String >	placeAddress;
-		
+														
 		private String					house;
-		
+														
 		private String					apartment;
-		
+														
 		public AppendConsumer() {}
 		
 		public void setUserId( final String userId ) {
@@ -182,20 +182,20 @@ public class Account extends Controller {
 	}
 	
 	private static final Form< Accept >					ACCEPT_FORM						= form( Accept.class );
-	
+																																		
 	private static final Form< PasswordChange >	PASSWORD_CHANGE_FORM	= form( PasswordChange.class );
-	
+																																		
 	private static final Form< AppendConsumer >	APPEND_CONSUMER_FORM	= form( AppendConsumer.class );
-	
+																																		
 	@SubjectPresent
 	public static Result link() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		return ok( link.render() );
 	}
 	
 	@SubjectPresent
 	public static Result verifyEmail() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final User user = User.getLocalUser( session() );
 		if ( user.isEmailValidated() )
 			// E-Mail has been validated already
@@ -213,7 +213,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result changePassword() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final User u = User.getLocalUser( session() );
 		if ( !u.isEmailValidated() )
 			return ok( unverified.render() );
@@ -223,7 +223,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result doChangePassword() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< Account.PasswordChange > filledForm = PASSWORD_CHANGE_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not select whether to link or not link
@@ -239,7 +239,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result askLink() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final AuthUser u = PlayAuthenticate.getLinkUser( session() );
 		if ( u == null )
 			// account to link could not be found, silently redirect to login
@@ -249,7 +249,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result doLink() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final AuthUser u = PlayAuthenticate.getLinkUser( session() );
 		if ( u == null )
 			// account to link could not be found, silently redirect to login
@@ -269,7 +269,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result askMerge() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		// this is the currently logged in user
 		final AuthUser aUser = PlayAuthenticate.getUser( session() );
 		// this is the user that was selected for a login
@@ -284,7 +284,7 @@ public class Account extends Controller {
 	
 	@SubjectPresent
 	public static Result doMerge() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		// this is the currently logged in user
 		final AuthUser aUser = PlayAuthenticate.getUser( session() );
 		// this is the user that was selected for a login
@@ -305,9 +305,9 @@ public class Account extends Controller {
 		}
 	}
 	
-	@Restrict( @Group( UserRole.USER_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.USER_ROLE_NAME ))
 	public static Result joinConsumerElectricity( final String idAddrTop ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< AppendConsumer > filledForm = APPEND_CONSUMER_FORM.bindFromRequest();
 		final AppendConsumer ac = new AppendConsumer();
 		ac.setUserId( User.getLocalUser( session() ).getId() );
@@ -319,9 +319,9 @@ public class Account extends Controller {
 		return ok( joinConsumer.render( filledForm.fill( ac ), loc ) );
 	}
 	
-	@Restrict( @Group( UserRole.USER_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.USER_ROLE_NAME ))
 	public static Result doJoinConsumerElectricity() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< AppendConsumer > filledForm = APPEND_CONSUMER_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
 			// User did not select whether to link or not link
@@ -350,9 +350,9 @@ public class Account extends Controller {
 		}
 	}
 	
-	@Restrict( @Group( UserRole.USER_ROLE_NAME ) )
+	@Restrict( @Group( UserRole.USER_ROLE_NAME ))
 	public static Result unjoinConsumerElectricity() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final User u = User.getLocalUser( session() );
 		final Consumer consumer = u.getConsumer();
 		if ( !consumer.unjoinConsumerElectricity() )

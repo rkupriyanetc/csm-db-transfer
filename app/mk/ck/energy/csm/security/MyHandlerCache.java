@@ -9,12 +9,12 @@ import be.objectify.deadbolt.java.cache.HandlerCache;
 public class MyHandlerCache implements HandlerCache {
 	
 	private final DeadboltHandler defaultHandler = new MyDeadboltHandler();
-
+	
 	@Override
-	public DeadboltHandler apply(final String key) {
+	public DeadboltHandler apply( final String key ) {
 		return this.defaultHandler;
 	}
-
+	
 	@Override
 	public DeadboltHandler get() {
 		return this.defaultHandler;

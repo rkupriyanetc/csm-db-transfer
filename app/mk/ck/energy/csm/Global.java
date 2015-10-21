@@ -1,22 +1,21 @@
 package mk.ck.energy.csm;
 
-import mk.ck.energy.csm.controllers.routes;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import play.Application;
-import play.GlobalSettings;
-import play.mvc.Call;
 
 import com.feth.play.module.pa.PlayAuthenticate;
 import com.feth.play.module.pa.PlayAuthenticate.Resolver;
 import com.feth.play.module.pa.exceptions.AccessDeniedException;
 import com.feth.play.module.pa.exceptions.AuthException;
 
+import mk.ck.energy.csm.controllers.routes;
+import play.Application;
+import play.GlobalSettings;
+import play.mvc.Call;
+
 public class Global extends GlobalSettings {
 	
-	private static final Logger	LOGGER	= LoggerFactory.getLogger( Global.class );
+	private static final Logger LOGGER = LoggerFactory.getLogger( Global.class );
 	
 	@Override
 	public void onStart( final Application app ) {

@@ -8,6 +8,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.feth.play.module.pa.controllers.AuthenticateBase;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
+
+import be.objectify.deadbolt.java.actions.Group;
+import be.objectify.deadbolt.java.actions.Restrict;
 import mk.ck.energy.csm.model.AddressLocation;
 import mk.ck.energy.csm.model.AddressNotFoundException;
 import mk.ck.energy.csm.model.AddressPlace;
@@ -19,10 +28,6 @@ import mk.ck.energy.csm.model.LocationType;
 import mk.ck.energy.csm.model.StreetType;
 import mk.ck.energy.csm.model.UndefinedConsumer;
 import mk.ck.energy.csm.model.auth.UserRole;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import play.data.Form;
 import play.data.validation.Constraints.Required;
 import play.mvc.Controller;
@@ -31,26 +36,21 @@ import views.html.addressLocation;
 import views.html.addressPlace;
 import views.html.addressTop;
 import views.html.viewConsumers;
-import be.objectify.deadbolt.java.actions.Group;
-import be.objectify.deadbolt.java.actions.Restrict;
-
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
 
 public class AccountTools extends Controller {
 	
-	private static final Logger	LOGGER	= LoggerFactory.getLogger( AccountTools.class );
+	private static final Logger LOGGER = LoggerFactory.getLogger( AccountTools.class );
 	
 	public static class AddrTop {
 		
 		@Required
 		private String	name;
-		
+										
 		private String	refId;
-		
+										
 		@Required
 		private String	id;
-		
+										
 		public AddrTop() {
 			id = UUID.randomUUID().toString().toLowerCase();
 		}
@@ -84,21 +84,21 @@ public class AccountTools extends Controller {
 		
 		@Required
 		private String					id;
-		
+														
 		@Required
 		private String					refId;
-		
+														
 		@Required
 		private String					location;
-		
+														
 		@Required
 		private String					locationType;
-		
+														
 		private List< String >	administrativeCenterType;
-		
+														
 		public AddrLocation() {
 			id = UUID.randomUUID().toString().toLowerCase();
-			administrativeCenterType = new LinkedList<>();
+			administrativeCenterType = new LinkedList< >();
 		}
 		
 		public String getId() {
@@ -146,13 +146,13 @@ public class AccountTools extends Controller {
 		
 		@Required
 		private String	id;
-		
+										
 		@Required
 		private String	streetType;
-		
+										
 		@Required
 		private String	street;
-		
+										
 		public AddrPlace() {
 			id = UUID.randomUUID().toString().toLowerCase();
 		}
@@ -185,17 +185,17 @@ public class AccountTools extends Controller {
 	public static class PageViewer {
 		
 		private int																currentRows;
-		
+																							
 		private long															totalRows;
-		
+																							
 		private long															readRows;
-		
+																							
 		private int																pageNumber;
-		
+																							
 		private MongoCursor< UndefinedConsumer >	cursorUndefinedConsumer;
-		
+																							
 		private MongoCursor< Consumer >						cursorConsumer;
-		
+																							
 		public PageViewer() {
 			currentRows = 20;
 			pageNumber = 1;
@@ -253,31 +253,27 @@ public class AccountTools extends Controller {
 	}
 	
 	private static final Form< AddrTop >			ADDRTOP_FORM			= form( AddrTop.class );
-	
+																															
 	private static final Form< AddrLocation >	ADDRLOCATION_FORM	= form( AddrLocation.class );
-	
+																															
 	private static final Form< AddrPlace >		ADDRPLACE_FORM		= form( AddrPlace.class );
-	
+																															
 	private static final Form< PageViewer >		PAGEVIEWER_FORM		= form( PageViewer.class );
-	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+																															
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result testTopAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
-		return ok( addressTop.render(
-				ADDRTOP_FORM,
-				scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-						.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+		AuthenticateBase.noCache( response() );
+		return ok( addressTop.render( ADDRTOP_FORM, scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection()
+				.find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result doTestTopAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< AddrTop > filledForm = ADDRTOP_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
-			return badRequest( addressTop.render(
-					filledForm,
-					scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+			return badRequest( addressTop.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressTop
+					.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 		else {
 			final AddrTop u = filledForm.get();
 			final AddressTop at = AddressTop.create( u.getName(), u.getRefId() );
@@ -287,50 +283,41 @@ public class AccountTools extends Controller {
 			}
 			catch ( final ImpossibleCreatingException ice ) {
 				filledForm.reject( ice.getMessage() );
-				return badRequest( addressTop.render(
-						filledForm,
-						scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-								.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+				return badRequest(
+						addressTop.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection()
+								.find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 			}
 			// Тут тра переробити
 			filledForm.data().put( "id", at.getId() );
 			LOGGER.trace( "Address top saved {}", at );
-			return ok( addressTop.render(
-					filledForm,
-					scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+			return ok( addressTop.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection()
+					.find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 		}
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result testLocationAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
-		return ok( addressLocation.render(
-				ADDRLOCATION_FORM,
+		AuthenticateBase.noCache( response() );
+		return ok( addressLocation.render( ADDRLOCATION_FORM,
 				scala.collection.JavaConversions.asScalaIterator( AddressLocation
-						.getMongoCollection()
-						.find()
-						.sort(
-								Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-										Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+						.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+								Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+				.iterator() ) ) );
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result doTestLocationAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< AddrLocation > filledForm = ADDRLOCATION_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
-			return badRequest( addressLocation.render(
-					filledForm,
+			return badRequest( addressLocation.render( filledForm,
 					scala.collection.JavaConversions.asScalaIterator( AddressLocation
-							.getMongoCollection()
-							.find()
-							.sort(
-									Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-											Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+							.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+									Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+					.iterator() ) ) );
 		else {
 			final AddrLocation u = filledForm.get();
-			final Set< AdministrativeCenterType > act = new LinkedHashSet<>();
+			final Set< AdministrativeCenterType > act = new LinkedHashSet< >();
 			try {
 				for ( final String i : u.getAdministrativeCenterType() )
 					act.add( AdministrativeCenterType.valueOf( i ) );
@@ -349,55 +336,44 @@ public class AccountTools extends Controller {
 			}
 			catch ( final AddressNotFoundException anfe ) {
 				filledForm.reject( anfe.getMessage() );
-				return badRequest( addressLocation.render(
-						filledForm,
+				return badRequest( addressLocation.render( filledForm,
 						scala.collection.JavaConversions.asScalaIterator( AddressLocation
-								.getMongoCollection()
-								.find()
-								.sort(
-										Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-												Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+								.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+										Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+						.iterator() ) ) );
 			}
 			catch ( final ImpossibleCreatingException ice ) {
 				filledForm.reject( ice.getMessage() );
-				return badRequest( addressLocation.render(
-						filledForm,
+				return badRequest( addressLocation.render( filledForm,
 						scala.collection.JavaConversions.asScalaIterator( AddressLocation
-								.getMongoCollection()
-								.find()
-								.sort(
-										Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-												Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+								.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+										Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+						.iterator() ) ) );
 			}
-			return ok( addressLocation.render(
-					filledForm,
+			return ok( addressLocation.render( filledForm,
 					scala.collection.JavaConversions.asScalaIterator( AddressLocation
-							.getMongoCollection()
-							.find()
-							.sort(
-									Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-											Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+							.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+									Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+					.iterator() ) ) );
 		}
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result testPlaceAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
-		return ok( addressPlace.render(
-				ADDRPLACE_FORM,
-				scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection().find()
-						.sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
+		AuthenticateBase.noCache( response() );
+		return ok(
+				addressPlace.render( ADDRPLACE_FORM, scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection()
+						.find().sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result doTestPlaceAddress() {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		final Form< AddrPlace > filledForm = ADDRPLACE_FORM.bindFromRequest();
 		if ( filledForm.hasErrors() )
-			return badRequest( addressPlace.render(
-					filledForm,
-					scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
+			return badRequest(
+					addressPlace.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection()
+							.find().sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
 		else {
 			final AddrPlace u = filledForm.get();
 			final AddressPlace ap = AddressPlace.create( StreetType.valueOf( u.getStreetType() ), u.getStreet() );
@@ -406,72 +382,60 @@ public class AccountTools extends Controller {
 			}
 			catch ( final ImpossibleCreatingException ice ) {
 				filledForm.reject( ice.getMessage() );
-				return badRequest( addressPlace.render(
-						filledForm,
-						scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection().find()
-								.sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
+				return badRequest(
+						addressPlace.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection()
+								.find().sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
 			}
 			// Тут тра переробити
 			filledForm.data().put( "id", ap.getId() );
 			LOGGER.trace( "Address place saved {}", ap );
-			return ok( addressPlace.render(
-					filledForm,
-					scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
+			return ok(
+					addressPlace.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressPlace.getMongoCollection()
+							.find().sort( Filters.and( Filters.eq( "street", 1 ), Filters.eq( "street_type", -1 ) ) ).iterator() ) ) );
 		}
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result removeTopAddress( final String id ) {
 		try {
 			AddressTop.remove( AddressTop.findById( id ) );
-			return ok( addressTop.render(
-					ADDRTOP_FORM,
-					scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+			return ok( addressTop.render( ADDRTOP_FORM, scala.collection.JavaConversions.asScalaIterator( AddressTop
+					.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 		}
 		catch ( final Exception e ) {
 			flash( Application.FLASH_MESSAGE_KEY, e.getMessage() );
 			final Form< AddrTop > filledForm = ADDRTOP_FORM.bindFromRequest();
 			filledForm.reject( e.getMessage() );
-			return badRequest( addressTop.render(
-					filledForm,
-					scala.collection.JavaConversions.asScalaIterator( AddressTop.getMongoCollection().find()
-							.sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
+			return badRequest( addressTop.render( filledForm, scala.collection.JavaConversions.asScalaIterator( AddressTop
+					.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_id", 1 ), Filters.eq( "name", 1 ) ) ).iterator() ) ) );
 		}
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result removeLocationAddress( final String id ) {
 		try {
 			AddressLocation.remove( AddressLocation.findById( id ) );
-			return ok( addressLocation.render(
-					ADDRLOCATION_FORM,
+			return ok( addressLocation.render( ADDRLOCATION_FORM,
 					scala.collection.JavaConversions.asScalaIterator( AddressLocation
-							.getMongoCollection()
-							.find()
-							.sort(
-									Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-											Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+							.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+									Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+					.iterator() ) ) );
 		}
 		catch ( final Exception e ) {
 			flash( Application.FLASH_MESSAGE_KEY, e.getMessage() );
 			final Form< AddrLocation > filledForm = ADDRLOCATION_FORM.bindFromRequest();
 			filledForm.reject( e.getMessage() );
-			return badRequest( addressLocation.render(
-					filledForm,
+			return badRequest( addressLocation.render( filledForm,
 					scala.collection.JavaConversions.asScalaIterator( AddressLocation
-							.getMongoCollection()
-							.find()
-							.sort(
-									Filters.and( Filters.eq( "top_address_id", 1 ), Filters.eq( "administrative_type", -1 ),
-											Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) ).iterator() ) ) );
+							.getMongoCollection().find().sort( Filters.and( Filters.eq( "top_address_id", 1 ),
+									Filters.eq( "administrative_type", -1 ), Filters.eq( "location_type", 1 ), Filters.eq( "location", 1 ) ) )
+					.iterator() ) ) );
 		}
 	}
 	
-	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) } )
+	@Restrict( { @Group( UserRole.OPER_ROLE_NAME ), @Group( UserRole.ADMIN_ROLE_NAME ) })
 	public static Result viewConsumers( int pageNum ) {
-		com.feth.play.module.pa.controllers.Authenticate.noCache( response() );
+		AuthenticateBase.noCache( response() );
 		if ( pageNum > 0 ) {
 			// final PageViewer pv = new PageViewer();
 			final int currentRows = 20;// pv.getCurrentRows();
@@ -501,8 +465,7 @@ public class AccountTools extends Controller {
 			 * pv.setCursorConsumer( cursorConsumer );
 			 * pv.setCursorUndefinedConsumer( cursorUndefinedConsumer );
 			 */
-			return ok( viewConsumers.render(
-					pageNum,// PAGEVIEWER_FORM.fill( pv ),
+			return ok( viewConsumers.render( pageNum, // PAGEVIEWER_FORM.fill( pv ),
 					scala.collection.JavaConversions.asScalaIterator( cursorConsumer ),
 					scala.collection.JavaConversions.asScalaIterator( cursorUndefinedConsumer ) ) );
 		} else
