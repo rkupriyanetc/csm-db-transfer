@@ -71,6 +71,7 @@ public abstract class CSMAbstractDocument< I extends Document > extends Document
 		return ur;
 	}
 	
+	@SuppressWarnings( "unchecked" )
 	public void insertIntoDB() {
 		createId();
 		try {

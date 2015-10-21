@@ -1,6 +1,7 @@
 @(addrForm: Form[mk.ck.energy.csm.controllers.AccountTools.AddrPlace], items: scala.collection.Iterator[mk.ck.energy.csm.model.AddressPlace] )
 
 @import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapBasic.f) }
 
 @main(Messages("page.home.testAddr")) {
   <div class="panel panel-primary">

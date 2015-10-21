@@ -1,6 +1,7 @@
 @(signupForm: Form[_])
 
 @import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapBasic.f) }
 @import mk.ck.energy.csm.controllers._
 
 @main(Messages("playauthenticate.signup.title"),"signup") {
@@ -15,7 +16,7 @@
       
       <div class="col-md-6 col-sm-6">
       
-        @helper.form(routes.Application.doSignup, 'class -> "form") {
+        @helper.form(routes.Application.doSignup, 'class -> "form-horizontal", 'role -> "form") {
         
           @if(signupForm.hasGlobalErrors) { 
 				    <div class="alert alert-warning">@signupForm.globalError.message</div>

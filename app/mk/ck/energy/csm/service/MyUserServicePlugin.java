@@ -11,11 +11,13 @@ import play.Application;
 import com.feth.play.module.pa.service.UserServicePlugin;
 import com.feth.play.module.pa.user.AuthUser;
 import com.feth.play.module.pa.user.AuthUserIdentity;
+import com.google.inject.Inject;
 
 public class MyUserServicePlugin extends UserServicePlugin {
 	
 	private static final Logger	LOGGER	= LoggerFactory.getLogger( MyUserServicePlugin.class );
 	
+	@Inject
 	public MyUserServicePlugin( final Application app ) {
 		super( app );
 	}

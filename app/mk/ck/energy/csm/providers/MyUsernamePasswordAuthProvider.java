@@ -32,6 +32,7 @@ import com.feth.play.module.mail.Mailer.Mail.Body;
 import com.feth.play.module.pa.PlayAuthenticate;
 import com.feth.play.module.pa.providers.password.UsernamePasswordAuthProvider;
 import com.feth.play.module.pa.providers.password.UsernamePasswordAuthUser;
+import com.google.inject.Inject;
 
 public class MyUsernamePasswordAuthProvider
 		extends
@@ -142,16 +143,15 @@ public class MyUsernamePasswordAuthProvider
 	
 	public static final Form< MyLogin >		LOGIN_FORM	= form( MyLogin.class );
 	
+	@Inject
 	public MyUsernamePasswordAuthProvider( final Application app ) {
 		super( app );
 	}
 	
-	@Override
 	protected Form< MySignup > getSignupForm() {
 		return SIGNUP_FORM;
 	}
 	
-	@Override
 	protected Form< MyLogin > getLoginForm() {
 		return LOGIN_FORM;
 	}

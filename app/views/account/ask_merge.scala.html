@@ -1,6 +1,7 @@
 @(acceptForm: Form[mk.ck.energy.csm.controllers.Account.Accept], aUser: com.feth.play.module.pa.user.AuthUser, bUser: com.feth.play.module.pa.user.AuthUser)
 
 @import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapBasic.f) }
 @import mk.ck.energy.csm.controllers._
 
 @label = {
@@ -15,10 +16,10 @@
     <div class="panel-body">
   		
   		<p>
-  			@form(routes.Account.doMerge) {
+  			@form(routes.Account.doMerge, 'class -> "form-horizontal", 'role -> "form") {
   			
   				@if(acceptForm.hasGlobalErrors) {
-  					<p class="error"><span class="label label-important">@acceptForm.globalError.message</span></p>
+  					<p class="alert alert-danger"><span class="label label-important">@acceptForm.globalError.message</span></p>
   				}
   				
   				@inputRadioGroup(

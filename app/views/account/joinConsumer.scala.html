@@ -1,6 +1,7 @@
 @(joinForm: Form[_], addrLocations: java.util.Map[String, String])
 
 @import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapBasic.f) }
 @import mk.ck.energy.csm.controllers._
 @import mk.ck.energy.csm.model.AddressTop
 @import mk.ck.energy.csm.model.AddressPlace
@@ -13,7 +14,7 @@
     </div>
     <div class="panel-body">
       
-      @helper.form(routes.Account.doJoinConsumerElectricity, 'class -> "form") {
+      @helper.form(routes.Account.doJoinConsumerElectricity, 'class -> "form-horizontal", 'role -> "form") {
         @if(joinForm.hasGlobalErrors) {
           <div class="alert alert-danger">@joinForm.globalError.message</div>
         }
@@ -114,6 +115,6 @@
     
   </div>
   
-  <script src='@controllers.routes.Assets.at("js/join-consumer.js")'></script>
+  <script src='@controllers.routes.Assets.versioned("js/join-consumer.js")'></script>
 }
       
