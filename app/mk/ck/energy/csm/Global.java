@@ -69,8 +69,11 @@ public class Global extends GlobalSettings {
 	
 	@Override
 	public void onStop( final Application app ) {
+		LOGGER.info( "APP RVK is stoping!" );
 		// Database.getInstance().getMongoClient().close();
 	}
 	
-	private void initialData() {}
+	private void initialData() {
+		LOGGER.info( "APP RVK is starting!" );
+	}
 }
