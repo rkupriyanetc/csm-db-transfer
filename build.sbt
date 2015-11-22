@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.apache.poi"            %  "poi-ooxml"           % "3.12",
   "org.webjars"               %  "bootstrap"           % "3.3.5",
   "org.webjars"               %  "select2"             % "4.0.0-2",
-  "org.easytesting"           % "fest-assert"          % "1.4"             % "test"
+  "org.easytesting"           %  "fest-assert"         % "1.4"             % "test"
 )
 
 // add resolver for deadbolt and easymail snapshots
